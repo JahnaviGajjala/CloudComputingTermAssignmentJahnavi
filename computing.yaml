@@ -12,8 +12,8 @@ Resources:
           ToPort: 22
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: 5000
-          ToPort: 5000
+          FromPort: 5050
+          ToPort: 5050
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 80
@@ -72,9 +72,9 @@ Resources:
           sudo python3 -m venv venv
           source venv/bin/activate
           sudo pip install -r requirements.txt
-          sudo FLASK_APP=app.py FLASK_RUN_PORT=6000 FLASK_RUN_HOST=0.0.0.0 flask run &
+          sudo FLASK_APP=app.py FLASK_RUN_PORT=5050 FLASK_RUN_HOST=0.0.0.0 flask run &
  
 Outputs:
   WebsiteURL:
     Description: "URL for the Term Assignment Flask app"
-    Value: !Sub "http://${CloudTermAssignmentInstance.PublicDnsName}:6000"
+    Value: !Sub "http://${CloudTermAssignmentInstance.PublicDnsName}:5050"
