@@ -68,7 +68,7 @@ Resources:
           sudo mkdir cloudComputingTermAssignment_jahnavi
           cd cloudComputingTermAssignment_jahnavi
           sudo git clone https://github.com/JahnaviGajjala/CloudComputingTermAssignmentJahnavi.git
-          cd termassign # Update this path if your repo structure is different
+          cd CloudComputingTermAssignmentJahnavi/termassign # Update this path if your repo structure is different
           sudo python3 -m venv venv
           source venv/bin/activate
           sudo pip install -r requirements.txt
