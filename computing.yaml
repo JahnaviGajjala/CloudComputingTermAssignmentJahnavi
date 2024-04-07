@@ -11,6 +11,7 @@ Parameters:
     Description: "The name of the S3 bucket for output from Polly."
     Type: String
     Default: "output-polly-jahnavi"
+    
 Resources:
   MyS3InputBucket:
     Type: AWS::S3::Bucket
@@ -23,17 +24,6 @@ Resources:
         RestrictPublicBuckets: false
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
-    Properties:
-      BucketPolicy:
-        Version: '2012-10-17'
-        Statement:
-          - Sid: AllowFullAccess
-            Effect: Allow
-            Principal: '*'
-            Action: 
-              - 's3:*'
-            Resource: 
-              - !GetAtt MyS3InputBucket.Arn
 
   MyS3OutputBucket:
     Type: AWS::S3::Bucket
@@ -46,8 +36,12 @@ Resources:
         RestrictPublicBuckets: false
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
+
+  MyS3InputBucketPolicy:
+    Type: AWS::S3::BucketPolicy
     Properties:
-      BucketPolicy:
+      Bucket: !Ref MyS3InputBucket
+      PolicyDocument:
         Version: '2012-10-17'
         Statement:
           - Sid: AllowFullAccess
@@ -56,7 +50,22 @@ Resources:
             Action: 
               - 's3:*'
             Resource: 
-              - !GetAtt MyS3OutputBucket.Arn
+              - !Join ['', ['arn:aws:s3:::', !Ref MyS3InputBucket, '/*']]
+
+  MyS3OutputBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref MyS3OutputBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowFullAccess
+            Effect: Allow
+            Principal: '*'
+            Action: 
+              - 's3:*'
+            Resource: 
+              - !Join ['', ['arn:aws:s3:::', !Ref MyS3OutputBucket, '/*']]
   
   CloudTermAssignment:
     Type: AWS::EC2::SecurityGroup
