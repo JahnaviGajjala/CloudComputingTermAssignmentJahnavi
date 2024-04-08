@@ -207,6 +207,7 @@
 from flask import Flask, render_template_string, request, redirect, url_for
 import boto3
 from werkzeug.utils import secure_filename
+import requests
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -277,6 +278,14 @@ def upload():
             s3_client.upload_fileobj(file.stream, S3_BUCKET, filename)
 
             api_gateway_url = get_api_url('MyApiGateway', 'prod')
+
+            api_endpoint = f"{api_gateway_url}/translate"
+            headers = {'Content-Type': 'application/json'}
+            data = {"input_bucket": S3_BUCKET, "input_bucket_file": filename}
+            response = requests.post(api_endpoint, json=data, headers=headers)
+            if response.status_code == 200:
+              #message = f"Successfully uploaded and processed: {filename}"
+              return f"<p>Successfully uploaded and processed: {filename}</p>"
 
 
 
