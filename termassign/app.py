@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template_string, jsonify
+from flask import Flask, request, render_template_string
 import os
 import werkzeug.utils
 import boto3
@@ -9,7 +9,7 @@ from botocore.exceptions import ClientError
 # Setup
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg'}
-BUCKET_NAME = 'input-textract-jahnavi'  # Use environment variable or direct assignment
+BUCKET_NAME = 'input-textract-jahnavi'  # Ensure this is correctly set
 
 # Ensure the upload folder exists
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -114,6 +114,27 @@ HTML_TEMPLATE = """
 </body>
 </html>
 """
+from flask import Flask, request, render_template_string
+import os
+import werkzeug.utils
+import boto3
+import logging
+import requests
+from botocore.exceptions import ClientError
+
+# Setup
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg'}
+BUCKET_NAME = 'input-textract-jahnavi'  # Ensure this is correctly set
+
+# Ensure the upload folder exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Initialize Flask app
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Define your HTML template here as before
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -129,8 +150,6 @@ def upload_to_s3(file_name, bucket, object_name=None):
         return False
     return True
 
-
-
 def get_api_url(api_name, stage_name):
     region = 'us-east-1'
     api_gateway_client = boto3.client('apigateway', region_name=region)
@@ -144,7 +163,6 @@ def get_api_url(api_name, stage_name):
     
     raise ValueError(f"API Gateway '{api_name}' not found.")
 
-
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
@@ -153,29 +171,33 @@ def upload_file():
             filename = werkzeug.utils.secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
+
             if upload_to_s3(file_path, BUCKET_NAME, filename):
                 try:
                     api_gateway_url = get_api_url('JahnaviApiGateway', 'prod')
-                    api_endpoint = f"{api_gateway_url}/textract-polly"  # Append specific endpoint if necessary
-                    return f"<p>{api_endpoint}<p>"
-                    
+                    api_endpoint = f"{api_gateway_url}/textract-polly"
+                    headers = {'Content-Type': 'application/json'}
                     data = {"input_bucket": BUCKET_NAME, "input_bucket_file": filename}
-                    response = requests.post(api_endpoint, json=data)
+                    response = requests.post(api_endpoint, json=data, headers=headers)
                     
                     if response.status_code == 200:
                         message = f"Successfully uploaded and processed: {filename}"
+                        return render_template_string(HTML_TEMPLATE, filename=filename, message=message)
                     else:
-                        message = f"Error calling API Gateway. Status code: {response.status_code}"
+                        message = f"Error calling API Gateway. Status code: {response.status_code}, Response: {response.text}"
+                        return render_template_string(HTML_TEMPLATE, filename="", message=message)
                 except Exception as e:
                     message = f"Error: {str(e)}"
+                    return render_template_string(HTML_TEMPLATE, filename="", message=message)
             else:
                 message = "Failed to upload to S3."
-            return render_template_string(HTML_TEMPLATE, filename=filename, message=message)
+                return render_template_string(HTML_TEMPLATE, filename="", message=message)
         else:
-            return render_template_string(HTML_TEMPLATE, filename="", message="File format not allowed.")
-    return render_template_string(HTML_TEMPLATE, filename=None, message=None)
-                
+            message = "File format not allowed."
+            return render_template_string(HTML_TEMPLATE, filename="", message=message)
+    else:
+        # For GET requests, just display the initial form (you need to define your HTML_TEMPLATE accordingly)
+        return render_template_string(HTML_TEMPLATE, filename=None, message=None)
 
 if __name__ == '__main__':
     app.run(debug=True)
-
