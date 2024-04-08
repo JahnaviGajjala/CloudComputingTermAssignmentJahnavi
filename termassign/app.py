@@ -327,6 +327,7 @@ def get_api_url(api_name, stage_name):
     # Construct the API URL
     #region = boto3.session.Session().region_name
     api_url = f"https://{api_id}.execute-api.{region}.amazonaws.com/{stage_name}/translate"
+    return f"<p>{api_url}</p>"
  
      # Define the JSON body of the request
     json_body = {
