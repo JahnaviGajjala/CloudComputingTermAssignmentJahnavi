@@ -309,19 +309,46 @@ def upload_to_s3(file_name, bucket, object_name=None):
         return False
     return True
 
-def get_api_gateway_invoke_url(api_name, stage_name):
-    client = boto3.client('apigateway', region_name='us-east-1')  
+def get_api_url(api_name, stage_name):
+    # Retrieve the APIs
+    region='us-east-1'
+    api_gateway_client = boto3.client('apigateway', region_name=region)
+    response = api_gateway_client.get_rest_apis()
+    # Find the API by name
+    api_id = None
+    for item in response['items']:
+        if item['name'] == api_name:
+            api_id = item['id']
+            break
+    
+    if not api_id:
+        raise Exception(f"API Gateway '{api_name}' not found.")
+ 
+    # Construct the API URL
+    #region = boto3.session.Session().region_name
+    api_url = f"https://{api_id}.execute-api.{region}.amazonaws.com/{stage_name}/translate"
+ 
+     # Define the JSON body of the request
+    json_body = {
+    "input_bucket":"input-textract-jahnavi",
+    "input_bucket_file":"sampleTextJahnvi.pdf"
+    }
+ 
     try:
-        response = client.get_rest_apis(limit=1000)
-        for item in response['items']:
-            if item['name'] == api_name:
-                api_id = item['id']
-                region_name = client.meta.region_name
-                invoke_url = f'https://{api_id}.execute-api.{region_name}.amazonaws.com/{stage_name}'
-                return invoke_url
-    except ClientError as e:
-        logging.error(e)
-    return None
+        
+        # Make the POST request
+        response = requests.post(api_url, json=json_body)
+        
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Process the response if needed
+            return response.json()  # Assuming the response contains JSON data
+        else:
+            return f"Error: Received status code {response.status_code}"
+    except Exception as e:
+        return f"Error: {str(e)}"
+ 
+    return api_url
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
@@ -332,16 +359,16 @@ def upload_file():
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
             if upload_to_s3(file_path, BUCKET_NAME, filename):
-                api_gateway_url = get_api_gateway_invoke_url('JahnaviApiGateway', 'prod')
-                if api_gateway_url:
-                    data = {"input_bucket": BUCKET_NAME, "input_bucket_file": filename}
-                    response = requests.post(api_gateway_url + '/textract-polly', json=data)
-                    if response.status_code == 200:
-                        message = f"Successfully uploaded and processed: {filename}"
-                    else:
-                        message = "Error calling API Gateway."
-                else:
-                    message = "API Gateway URL could not be retrieved."
+                api_gateway_url =  get_api_url('JahnaviApiGateway', 'prod')
+                # if api_gateway_url:
+                #     data = {"input_bucket": BUCKET_NAME, "input_bucket_file": filename}
+                #     response = requests.post(api_gateway_url + '/textract-polly', json=data)
+                #     if response.status_code == 200:
+                #         message = f"Successfully uploaded and processed: {filename}"
+                #     else:
+                #         message = "Error calling API Gateway."
+                # else:
+                #     message = "API Gateway URL could not be retrieved."
             else:
                 message = "Failed to upload to S3."
             return render_template_string(HTML_TEMPLATE, filename=filename, message=message)
