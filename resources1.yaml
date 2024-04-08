@@ -107,6 +107,17 @@ Resources:
               - Effect: Allow
                 Action: "s3:*"
                 Resource: "*"
+        - PolicyName: ApiGatewayAccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "apigateway:GET"
+                  - "apigateway:POST" # Add if you need to create or modify API resources
+                  - "apigateway:PUT"
+                Resource:
+                  - "*"
 
   EC2InstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
