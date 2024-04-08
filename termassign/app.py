@@ -3,6 +3,7 @@ import os
 import werkzeug.utils
 import boto3
 import logging
+import requests
 
 # Setup
 UPLOAD_FOLDER = 'uploads'
@@ -122,10 +123,23 @@ def upload_to_s3(file_name, bucket, object_name=None):
     s3_client = boto3.client('s3')
     try:
         response = s3_client.upload_file(file_name, bucket, object_name)
+        
     except boto3.exceptions.S3UploadFailedError as e:
         logging.error(e)
         return False
     return True
+
+
+def get_api_gateway_invoke_url(api_name, stage_name):
+    client = boto3.client('apigateway', region_name='your-region')  
+    response = client.get_rest_apis(limit=500)
+
+    for item in response['items']:
+        if item['name'] == api_name:
+            api_id = item['id']
+            invoke_url = f'https://{api_id}.execute-api.your-region.amazonaws.com/{stage_name}'
+            return invoke_url
+    return None
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
@@ -137,9 +151,17 @@ def upload_file():
             file.save(file_path)
             upload_successful = upload_to_s3(file_path, BUCKET_NAME, filename)
             if upload_successful:
-                message = f"Successfully uploaded: {filename}"
-            else:
-                message = "Failed to upload to S3."
+                
+                api_gateway_url = get_api_gateway_invoke_url('JahnaviApiGateway', 'prod')  # Using your API name and stage
+                if api_gateway_url:
+                    data = {
+                    "input_bucket": BUCKET_NAME,
+                    "input_bucket_file": filename
+                    }
+                    response = requests.post(api_gateway_url + '/textract-polly', json=data)  # Append your resource path if needed
+                    message = f"Successfully uploaded: {filename}"
+                else:
+                    message = "Failed to upload to S3."
             return render_template_string(HTML_TEMPLATE, filename=filename, message=message)
         else:
             return render_template_string(HTML_TEMPLATE, filename="", message="File format not allowed.")
