@@ -248,6 +248,20 @@ SUCCESS_TEMPLATE = """
 def index():
     return render_template_string(HTML_TEMPLATE)
 
+
+def get_api_url(api_name, stage_name):
+    region = 'us-east-1'
+    api_gateway_client = boto3.client('apigateway', region_name=region)
+    response = api_gateway_client.get_rest_apis()
+
+    for item in response['items']:
+        if item['name'] == api_name:
+            api_id = item['id']
+            api_url = f"https://{api_id}.execute-api.{region}.amazonaws.com/{stage_name}"
+            return api_url
+    
+    raise ValueError(f"API Gateway '{api_name}' not found.")
+
 @app.route('/upload', methods=['POST'])
 def upload():
     if 'pdf_file' not in request.files:
@@ -263,8 +277,12 @@ def upload():
             # Using 'file.stream' instead of 'file' directly for 'upload_fileobj'
             s3_client.upload_fileobj(file.stream, S3_BUCKET, filename)
 
+            api_gateway_url = get_api_url('JahnaviApiGateway', 'prod')
+            return f"<p>{api_gateway_url}</p>"
+
+
             return render_template_string(SUCCESS_TEMPLATE)
-        except Exception as e:
+        except Exception as e:x
             return str(e)
 
     return redirect(url_for('index'))
