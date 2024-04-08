@@ -1,5 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: CloudFormation stack for an API Gateway, Lambda function, S3, Textract, and Polly with security and maintainability optimizations.
+Description: >
+  CloudFormation stack for an API Gateway, Lambda function, S3, Textract, and Polly with
+  security and maintainability optimizations.
 
 Resources:
   JahnaviLambdaRole:
@@ -31,6 +33,10 @@ Resources:
                   - polly:*
                   - textract:*
                 Resource: "*"
+              - Effect: Allow
+                Action:
+                  - apigateway:GET
+                Resource: "arn:aws:apigateway:${AWS::Region}::/restapis/*"
 
   JahnaviLambdaFunction:
     Type: AWS::Lambda::Function
@@ -139,6 +145,3 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: "*"
-
-  
-
