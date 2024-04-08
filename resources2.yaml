@@ -2,10 +2,10 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: CloudFormation stack.
 
 Resources:
-  LambdaExecutionRole:
+  JahnaviLambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: LambdaExecutionRole
+      RoleName: JahnaviLambdaRole
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -22,17 +22,17 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - s3:GetObject
                   - s3:PutObject
+                  - s3:GetObject
+                  - logs:PutLogEvents
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
-                  - logs:PutLogEvents
                 Resource: "*"
               - Effect: Allow
                 Action:
+                  - apigateway:GET 
                   - polly:*
                   - textract:*
-                  - apigateway:GET  # Adding API Gateway GET permission
                 Resource: "*"
  
   LambdaFunction:
@@ -40,7 +40,7 @@ Resources:
     Properties:
       FunctionName: TextractPolly
       Handler: index.lambda_handler
-      Role: !GetAtt LambdaExecutionRole.Arn
+      Role: !GetAtt JahnaviLambdaRole.Arn
       Code:
         ZipFile: |
           import json
@@ -77,23 +77,23 @@ Resources:
       Runtime: python3.8
       Timeout: 500
  
-  ApiGatewayRestApi:
+  JahnaviApiGatewayRestApi:
     Type: AWS::ApiGateway::RestApi
     Properties:
-      Name: MyApiGateway
+      Name: JahnaviAPIGateway
  
-  ApiGatewayResource:
+  JahnaviApiGatewayResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
-      PathPart: translate
-      RestApiId: !Ref ApiGatewayRestApi
-  ApiGatewayAccount:
+      ParentId: !GetAtt JahnaviApiGatewayRestApi.RootResourceId
+      PathPart: textract-polly
+      RestApiId: !Ref JahnaviApiGatewayRestApi
+  JahnaviApiGatewayAccount:
     Type: AWS::ApiGateway::Account
     Properties:
-      CloudWatchRoleArn: !GetAtt ApiGatewayCloudWatchRole.Arn
+      CloudWatchRoleArn: !GetAtt JahnaviGatewayCloudWatchRole.Arn
  
-  ApiGatewayCloudWatchRole:
+  JahnaviGatewayCloudWatchRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -120,12 +120,12 @@ Resources:
                   - logs:FilterLogEvents
                 Resource: "*"
 
-  ApiGatewayMethod:
+  JahnaviApiGatewayMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       HttpMethod: POST
-      ResourceId: !Ref ApiGatewayResource
-      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref JahnaviApiGatewayResource
+      RestApiId: !Ref JahnaviApiGatewayRestApi
       AuthorizationType: NONE
       Integration:
         IntegrationHttpMethod: POST
@@ -134,18 +134,18 @@ Resources:
       MethodResponses:
         - StatusCode: 200
  
-  ApiGatewayDeployment:
+  JahnaviApiGatewayDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
-      - ApiGatewayMethod
+      - JahnaviApiGatewayMethod
     Properties:
-      RestApiId: !Ref ApiGatewayRestApi
+      RestApiId: !Ref JahnaviApiGatewayRestApi
       StageName: prod
  
-  LambdaPermissionForApiGateway:
+  JahnaviLambdaPermissionForApiGateway:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt LambdaFunction.Arn
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/*"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${JahnaviApiGatewayRestApi}/*/*"

@@ -277,7 +277,7 @@ def upload():
         try:
             s3_client.upload_fileobj(file.stream, S3_BUCKET, filename)
 
-            api_gateway_url = get_api_url('MyApiGateway', 'prod')
+            api_gateway_url = get_api_url('JahnaviAPIGateway', 'prod')
 
             api_endpoint = f"{api_gateway_url}/translate"
             headers = {'Content-Type': 'application/json'}
