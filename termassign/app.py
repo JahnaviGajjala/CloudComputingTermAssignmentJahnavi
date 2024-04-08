@@ -152,7 +152,9 @@ def upload_file():
             filename = werkzeug.utils.secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
+
             upload_successful = upload_to_s3(file_path, BUCKET_NAME, filename)
+            return f"<p>File uploaded: {filename}</p>"
             print(upload_successful)
             api_gateway_url = get_api_gateway_invoke_url('JahnaviApiGateway', 'prod')  # Using your API name and stage
             print(api_gateway_url)
