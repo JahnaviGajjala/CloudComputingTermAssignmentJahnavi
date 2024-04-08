@@ -132,12 +132,15 @@ def upload_to_s3(file_name, bucket, object_name=None):
 
 def get_api_gateway_invoke_url(api_name, stage_name):
     client = boto3.client('apigateway', region_name='your-region')  
-    response = client.get_rest_apis(limit=500)
+    print("client:",client)
+    response = client.get_rest_apis(limit=1000)
+    print("response",response)
 
     for item in response['items']:
         if item['name'] == api_name:
             api_id = item['id']
             invoke_url = f'https://{api_id}.execute-api.your-region.amazonaws.com/{stage_name}'
+            print("invoke url",invoke_url)
             return invoke_url
     return None
 
@@ -150,7 +153,10 @@ def upload_file():
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
             upload_successful = upload_to_s3(file_path, BUCKET_NAME, filename)
+            print(upload_successful)
             api_gateway_url = get_api_gateway_invoke_url('JahnaviApiGateway', 'prod')  # Using your API name and stage
+            print(api_gateway_url)
+
             if api_gateway_url:
                     data = {
                     "input_bucket": BUCKET_NAME,
