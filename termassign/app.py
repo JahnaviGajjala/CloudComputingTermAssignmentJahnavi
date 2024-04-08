@@ -310,6 +310,7 @@ def upload_to_s3(file_name, bucket, object_name=None):
     return True
 
 def get_api_url(api_name, stage_name):
+    return f"<p>{api_name, stage_name}</p>"
     # Retrieve the APIs
     region='us-east-1'
     api_gateway_client = boto3.client('apigateway', region_name=region)
