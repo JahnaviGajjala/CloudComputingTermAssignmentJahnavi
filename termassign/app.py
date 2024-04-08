@@ -310,7 +310,6 @@ def upload_to_s3(file_name, bucket, object_name=None):
     return True
 
 def get_api_gateway_invoke_url(api_name, stage_name):
-    
     client = boto3.client('apigateway', region_name='us-east-1')  
     try:
         response = client.get_rest_apis(limit=1000)
@@ -318,11 +317,11 @@ def get_api_gateway_invoke_url(api_name, stage_name):
             if item['name'] == api_name:
                 api_id = item['id']
                 region_name = client.meta.region_name
-                invoke_url = f'https://{api_id}.execute-api.{'us-east-1'}.amazonaws.com/{stage_name}'
+                invoke_url = f'https://{api_id}.execute-api.{region_name}.amazonaws.com/{stage_name}'
                 return invoke_url
     except ClientError as e:
         logging.error(e)
-    return e
+    return None
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
@@ -334,7 +333,6 @@ def upload_file():
             file.save(file_path)
             if upload_to_s3(file_path, BUCKET_NAME, filename):
                 api_gateway_url = get_api_gateway_invoke_url('JahnaviApiGateway', 'prod')
-                return f"<p>{api_gateway_url}</p>"
                 if api_gateway_url:
                     data = {"input_bucket": BUCKET_NAME, "input_bucket_file": filename}
                     response = requests.post(api_gateway_url + '/textract-polly', json=data)
