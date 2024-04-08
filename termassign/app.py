@@ -278,11 +278,11 @@ def upload():
             s3_client.upload_fileobj(file.stream, S3_BUCKET, filename)
 
             api_gateway_url = get_api_url('JahnaviApiGateway', 'prod')
-            return f"<p>{api_gateway_url}</p>"
+
 
 
             return render_template_string(SUCCESS_TEMPLATE)
-        except Exception as e:x
+        except Exception as e:
             return str(e)
 
     return redirect(url_for('index'))
