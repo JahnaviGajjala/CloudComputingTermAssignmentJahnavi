@@ -160,8 +160,6 @@ def upload_file():
             
             print(upload_successful)
             api_gateway_url = get_api_gateway_invoke_url('JahnaviApiGateway', 'prod')  # Using your API name and stage
-            print(api_gateway_url)
-            return f"<p>{api_gateway_url}</p>"
 
             if api_gateway_url:
                     data = {
