@@ -150,17 +150,15 @@ def upload_file():
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
             upload_successful = upload_to_s3(file_path, BUCKET_NAME, filename)
-            if upload_successful:
-                
-                api_gateway_url = get_api_gateway_invoke_url('JahnaviApiGateway', 'prod')  # Using your API name and stage
-                if api_gateway_url:
+            api_gateway_url = get_api_gateway_invoke_url('JahnaviApiGateway', 'prod')  # Using your API name and stage
+            if api_gateway_url:
                     data = {
                     "input_bucket": BUCKET_NAME,
                     "input_bucket_file": filename
                     }
                     response = requests.post(api_gateway_url + '/textract-polly', json=data)  # Append your resource path if needed
                     message = f"Successfully uploaded: {filename}"
-                else:
+            else:
                     message = "Failed to upload to S3."
             return render_template_string(HTML_TEMPLATE, filename=filename, message=message)
         else:
