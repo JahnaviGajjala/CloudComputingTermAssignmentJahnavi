@@ -209,16 +209,12 @@ import boto3
 from werkzeug.utils import secure_filename
 import requests
 
-# Initialize Flask app
 app = Flask(__name__)
 
-# AWS S3 Configuration
 S3_BUCKET = 'input-textract-jahnavi'
 
-# Using the default session that will use the IAM role's permissions
 s3_client = boto3.client('s3')
 
-# Home page with file upload form
 HTML_TEMPLATE = """
 <!doctype html>
 <html>
@@ -276,23 +272,16 @@ def upload():
         filename = secure_filename(file.filename)
         try:
             s3_client.upload_fileobj(file.stream, S3_BUCKET, filename)
-
             api_gateway_url = get_api_url('JahnaviAPIGateway', 'prod')
-
-            api_endpoint = f"{api_gateway_url}/translate"
+            api_endpoint = f"{api_gateway_url}/textract-polly"
             headers = {'Content-Type': 'application/json'}
             data = {"input_bucket": S3_BUCKET, "input_bucket_file": filename}
             response = requests.post(api_endpoint, json=data, headers=headers)
             if response.status_code == 200:
-              #message = f"Successfully uploaded and processed: {filename}"
               return f"<p>Successfully uploaded and processed: {filename}</p>"
-
-
-
             return render_template_string(SUCCESS_TEMPLATE)
         except Exception as e:
             return str(e)
-
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
