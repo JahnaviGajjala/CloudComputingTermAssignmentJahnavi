@@ -75,7 +75,7 @@ Resources:
       Environment:
         Variables:
           OUTPUT_BUCKET_NAME: "output-polly-jahnavi"
-      Timeout: 120
+      Timeout: 500
 
   JahnaviApiGatewayRestApi:
     Type: AWS::ApiGateway::RestApi
