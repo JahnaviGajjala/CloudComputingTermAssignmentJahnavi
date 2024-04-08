@@ -274,10 +274,9 @@ def upload():
     if file and file.filename.endswith('.pdf'):
         filename = secure_filename(file.filename)
         try:
-            # Using 'file.stream' instead of 'file' directly for 'upload_fileobj'
             s3_client.upload_fileobj(file.stream, S3_BUCKET, filename)
 
-            api_gateway_url = get_api_url('JahnaviApiGateway', 'prod')
+            api_gateway_url = get_api_url('MyApiGateway', 'prod')
 
 
 
