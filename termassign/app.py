@@ -318,7 +318,7 @@ def get_api_gateway_invoke_url(api_name, stage_name):
             if item['name'] == api_name:
                 api_id = item['id']
                 region_name = client.meta.region_name
-                invoke_url = f'https://{api_id}.execute-api.{region_name}.amazonaws.com/{stage_name}'
+                invoke_url = f'https://{api_id}.execute-api.{'us-east-1'}.amazonaws.com/{stage_name}'
                 return invoke_url
     except ClientError as e:
         logging.error(e)
