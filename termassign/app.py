@@ -333,6 +333,7 @@ def upload_file():
             file.save(file_path)
             if upload_to_s3(file_path, BUCKET_NAME, filename):
                 api_gateway_url = get_api_gateway_invoke_url('JahnaviApiGateway', 'prod')
+                return f"<p>{api_gateway_url}</p>"
                 if api_gateway_url:
                     data = {"input_bucket": BUCKET_NAME, "input_bucket_file": filename}
                     response = requests.post(api_gateway_url + '/textract-polly', json=data)
