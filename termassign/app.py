@@ -310,7 +310,7 @@ def upload_to_s3(file_name, bucket, object_name=None):
     return True
 
 def get_api_gateway_invoke_url(api_name, stage_name):
-    return f"<p>{api_name,stage_name}</p>"
+    
     client = boto3.client('apigateway', region_name='us-east-1')  
     try:
         response = client.get_rest_apis(limit=1000)
@@ -322,7 +322,7 @@ def get_api_gateway_invoke_url(api_name, stage_name):
                 return invoke_url
     except ClientError as e:
         logging.error(e)
-    return None
+    return e
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
@@ -334,19 +334,19 @@ def upload_file():
             file.save(file_path)
             if upload_to_s3(file_path, BUCKET_NAME, filename):
                 api_gateway_url = get_api_gateway_invoke_url('JahnaviApiGateway', 'prod')
-                #return f"<p>{api_gateway_url}</p>"
-            #     if api_gateway_url:
-            #         data = {"input_bucket": BUCKET_NAME, "input_bucket_file": filename}
-            #         response = requests.post(api_gateway_url + '/textract-polly', json=data)
-            #         if response.status_code == 200:
-            #             message = f"Successfully uploaded and processed: {filename}"
-            #         else:
-            #             message = "Error calling API Gateway."
-            #     else:
-            #         message = "API Gateway URL could not be retrieved."
-            # else:
-            #     message = "Failed to upload to S3."
-            # return render_template_string(HTML_TEMPLATE, filename=filename, message=message)
+                return f"<p>{api_gateway_url}</p>"
+                if api_gateway_url:
+                    data = {"input_bucket": BUCKET_NAME, "input_bucket_file": filename}
+                    response = requests.post(api_gateway_url + '/textract-polly', json=data)
+                    if response.status_code == 200:
+                        message = f"Successfully uploaded and processed: {filename}"
+                    else:
+                        message = "Error calling API Gateway."
+                else:
+                    message = "API Gateway URL could not be retrieved."
+            else:
+                message = "Failed to upload to S3."
+            return render_template_string(HTML_TEMPLATE, filename=filename, message=message)
         else:
             return render_template_string(HTML_TEMPLATE, filename="", message="File format not allowed.")
     return render_template_string(HTML_TEMPLATE, filename=None, message=None)
