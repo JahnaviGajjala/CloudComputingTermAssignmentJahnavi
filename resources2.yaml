@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: CloudFormation stack.
- 
+
 Resources:
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -32,6 +32,7 @@ Resources:
                 Action:
                   - polly:*
                   - textract:*
+                  - apigateway:GET  # Adding API Gateway GET permission
                 Resource: "*"
  
   LambdaFunction:
