@@ -36,7 +36,9 @@ Resources:
               - Effect: Allow
                 Action:
                   - apigateway:GET
-                Resource: "arn:aws:apigateway:${AWS::Region}::/restapis/*"
+                Resource: 
+                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}::/restapis/*"
+        
 
   JahnaviLambdaFunction:
     Type: AWS::Lambda::Function
