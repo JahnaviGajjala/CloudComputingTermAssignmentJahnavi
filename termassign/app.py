@@ -1,83 +1,3 @@
-# from flask import Flask, render_template_string, request, redirect, url_for
-# import boto3
-# from werkzeug.utils import secure_filename
-# import requests
-
-# app = Flask(__name__)
-
-# S3_BUCKET = 'input-textract-jahnavi'
-
-# s3_client = boto3.client('s3')
-
-# HTML_TEMPLATE = """
-# <!doctype html>
-# <html>
-# <head><title>Upload to S3</title></head>
-# <body>
-# <h2>Upload PDF to S3</h2>
-# <form method="post" action="/upload" enctype="multipart/form-data">
-#     <input type="file" name="pdf_file" accept=".pdf">
-#     <input type="submit" value="Upload">
-# </form>
-# </body>
-# </html>
-# """
-
-# # Route for the success page
-# SUCCESS_TEMPLATE = """
-# <!doctype html>
-# <html>
-# <head><title>Upload Successful</title></head>
-# <body>
-# <h2>Uploaded Successfully</h2>
-# <a href="/">Go Back</a>
-# </body>
-# </html>
-# """
-
-# @app.route('/')
-# def index():
-#     return render_template_string(HTML_TEMPLATE)
-
-
-# def get_api_url(api_name, stage_name):
-#     region = 'us-east-1'
-#     api_gateway_client = boto3.client('apigateway', region_name=region)
-#     response = api_gateway_client.get_rest_apis()
-#     for item in response['items']:
-#         if item['name'] == api_name:
-#             api_id = item['id']
-#             api_url = f"https://{api_id}.execute-api.{region}.amazonaws.com/{stage_name}"
-#             return api_url
-#     raise ValueError(f"API Gateway '{api_name}' not found.")
-
-# @app.route('/upload', methods=['POST'])
-# def upload():
-#     if 'pdf_file' not in request.files:
-#         return redirect(url_for('index'))
-#     file = request.files['pdf_file']
-#     if file.filename == '':
-#         return redirect(url_for('index'))
-#     if file and file.filename.endswith('.pdf'):
-#         filename = secure_filename(file.filename)
-#         try:
-#             s3_client.upload_fileobj(file.stream, S3_BUCKET, filename)
-#             api_gateway_url = get_api_url('JahnaviAPIGateway', 'prod')
-#             api_endpoint = f"{api_gateway_url}/textract-polly"
-#             headers = {'Content-Type': 'application/json'}
-#             data = {"input_bucket": S3_BUCKET, "input_bucket_file": filename}
-#             response = requests.post(api_endpoint, json=data, headers=headers)
-#             if response.status_code == 200:
-#               return f"<p>Successfully uploaded and processed: {filename}</p>"
-#             return render_template_string(SUCCESS_TEMPLATE)
-#         except Exception as e:
-#             return str(e)
-#     return redirect(url_for('index'))
-
-# if __name__ == '__main__':
-#     app.run(debug=True)
-
-
 from flask import Flask, redirect, render_template_string, request, url_for
 import boto3
 from werkzeug.utils import secure_filename
@@ -242,7 +162,6 @@ def get_api_url(api_name, stage_name):
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    """Handles the file upload and triggers the processing."""
     if 'pdf_file' not in request.files:
         return redirect(url_for('index'))
     
