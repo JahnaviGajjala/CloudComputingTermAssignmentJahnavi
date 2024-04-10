@@ -5,7 +5,6 @@ import requests
 
 app = Flask(__name__)
 
-
 S3_BUCKET = 'input-textract-jahnavi'
 
 s3_client = boto3.client('s3')
