@@ -3,15 +3,12 @@ import boto3
 from werkzeug.utils import secure_filename
 import requests
 
-
 app = Flask(__name__)
 
 
 S3_BUCKET = 'input-textract-jahnavi'
 
 s3_client = boto3.client('s3')
-
-
 HTML_TEMPLATE = """
 <!doctype html>
 <html>
